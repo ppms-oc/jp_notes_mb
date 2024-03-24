@@ -1,0 +1,13 @@
+dash
+geopandas
+ipywidgets
+jupyter
+matplotlib
+numpy
+pandas
+plotly
+pytz
+rasterio
+scipy
+seawater
+
