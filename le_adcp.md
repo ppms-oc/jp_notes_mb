@@ -1,16 +1,15 @@
 ---
-jupyter:
-  jupytext:
-    formats: ipynb,md
-    text_representation:
-      extension: .md
-      format_name: markdown
-      format_version: '1.3'
-      jupytext_version: 1.16.1
-  kernelspec:
-    display_name: Python 3 (ipykernel)
-    language: python
-    name: python3
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.16.1
+kernelspec:
+  display_name: Python 3 (ipykernel)
+  language: python
+  name: python3
 ---
 
 # ADCP
@@ -21,13 +20,15 @@ Dados foram corrigidos para o nível do transdutor e declinação magnética no 
 
 Explicação sobre o procedimento de exportação dos dados pelo WinRiver no arquivo "Exportando dados pelo WinRiver2.odt"
 
++++
 
 ### Importando Bibliotecas
 
++++
 
 ##### Bibliotecas usadas a partir da primeira função
 
-```python
+```{code-cell} ipython3
 import pandas as pd
 import numpy as np
 from matplotlib.dates import num2date
@@ -36,13 +37,13 @@ import pytz
 
 ##### Biblioteca Usada na Regressão Linear
 
-```python
+```{code-cell} ipython3
 from scipy.stats import linregress
 ```
 
 ##### Bibliotecas Utilizadas no Mapa 1: Localização dos Ensembles
 
-```python
+```{code-cell} ipython3
 import matplotlib.pyplot as plt
 import rasterio
 from rasterio.plot import show
@@ -52,12 +53,12 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 ##### Bibliotecas Utilizadas no Mapa 2: Reta Ajustada e Ponto Projetado 
 
-```python
+```{code-cell} ipython3
 import geopandas as gpd
 from shapely.geometry import Point, LineString
 ```
 
-```python
+```{code-cell} ipython3
 #### Outras
 from matplotlib.colors import TwoSlopeNorm
 import plotly.graph_objects as go
@@ -66,12 +67,12 @@ import plotly.express as px  # Biblioteca para visualização de dados interativ
 
 ### Define o Caminho dos Arquivos
 
-```python
+```{code-cell} ipython3
 # Caminho do arquivo com os dados
 caminho_arquivo = "/home/ppms/Documents/TCC_Organizado/jp_notes_mb/dados/adcp_20210227_1.TXT"
 ```
 
-```python
+```{code-cell} ipython3
 # Caminho do basemap
 basemap_path = '/home/ppms/Documents/TCC_Organizado/jp_notes_mb/dados/basemap_cNautica.tif'
 basemap = rasterio.open(basemap_path)
@@ -79,10 +80,11 @@ basemap = rasterio.open(basemap_path)
 
 ### Funções 
 
++++
 
 #### Função de Leitura do Arquivo e Organização dos Dados 
 
-```python
+```{code-cell} ipython3
 def ler_dados_adcp(caminho_arquivo):
     """
     Função para ler os dados do arquivo ADCP em formato TXT e convertê-los em um DataFrame do pandas.
@@ -223,7 +225,7 @@ def ler_dados_adcp(caminho_arquivo):
 
 #### Função para Substituir pd.NA por np.nan
 
-```python
+```{code-cell} ipython3
 def NA4nan(df, column_name):
     """
     Função para substituir valores NA em uma coluna do DataFrame por nan e converter para um array numpy transposto.
@@ -256,12 +258,11 @@ def NA4nan(df, column_name):
     # Converte a lista de listas em um array numpy transposto
     arr = np.array(lst).T
     return arr
-
 ```
 
 #### Função que encontra o valor máximo absoluto num array multidimensional, ignorando valores NaN
 
-```python
+```{code-cell} ipython3
 def ValMax(arr):
     """
     Encontra o valor absoluto máximo em um array numpy, ignorando valores NaN.
@@ -287,7 +288,7 @@ def ValMax(arr):
 
 #### Função que calcula a média por intervalos de distância
 
-```python
+```{code-cell} ipython3
 def calcular_media_por_distancia(distancias, arr, d_dist):
     """
     Calcula a média do array fornecido para cada intervalo de distância.
@@ -333,7 +334,7 @@ def calcular_media_por_distancia(distancias, arr, d_dist):
 
 ### Chama a Função de Leitura e Atribui o Dataframe a uma Variável
 
-```python
+```{code-cell} ipython3
 # Chamar a função para iniciar o processo de seleção de arquivo
 df = ler_dados_adcp(caminho_arquivo)
 
@@ -343,10 +344,11 @@ df = df[1:]
 
 ### Visualização Preliminar dos Dados
 
++++
 
 #### Mapa de Localização dos Ensembles e Seleção de Ensembles
 
-```python
+```{code-cell} ipython3
 # Extraindo Coordenadas e Ensembles
 longitude = df['longitude'].to_numpy()
 latitude = df['latitude'].to_numpy()
@@ -392,10 +394,9 @@ plt.colorbar(scatter, cax=cax, label='Número do Ensemble')
 
 # Exiba o gráfico
 plt.show()
-
 ```
 
-```python
+```{code-cell} ipython3
 cor_palette = 'plasma'
 fig = px.scatter_mapbox(df, lat="latitude", lon="longitude", hover_name='ensemble', zoom=14, height=300, 
                         color='ensemble', color_continuous_scale=cor_palette)
@@ -407,19 +408,19 @@ fig.update_layout(margin={"r":20,"t":30,"l":20,"b":20},
 fig.show()
 ```
 
-```python
+```{code-cell} ipython3
 # Variáveis não são mais necessárias e serão deletadas para liberar espaço
 del longitude, latitude, ensemble_num
 ```
 
-```python
+```{code-cell} ipython3
 # Extraindo os Ensembles do Transecto Perpendicular ao Fluxo
 df =  df.loc[(df['ensemble'] >= 235) & (df['ensemble'] <= df['ensemble'].max())]
 ```
 
 ### Plots corte vertical
 
-```python
+```{code-cell} ipython3
 # # Converter as colunas relevantes para arrays numpy
 # avgBack = pd.Series(np.concatenate(df['avgBack'].values)).dropna()
 # u = pd.Series(np.concatenate(df['u'].values)).dropna()
@@ -433,7 +434,7 @@ df =  df.loc[(df['ensemble'] >= 235) & (df['ensemble'] <= df['ensemble'].max())]
 # data = pd.DataFrame({'avgBack': avgBack, 'niveis': niveis, 'u': u, 'v': v, 'datahora': datahora})
 ```
 
-```python
+```{code-cell} ipython3
 # Extrai os valores do dataframe e substitui pb.NA por np.nan
 # Isto é necessário por questão de compatibilidade com funções do numpy que serão usadas na sequência
 u_arr = NA4nan(df, 'u')
@@ -441,7 +442,7 @@ v_arr = NA4nan(df, 'v')
 avgB_arr = NA4nan(df, 'avgBack')
 ```
 
-```python
+```{code-cell} ipython3
 # Obter os valores únicos da coluna 'datahora' do DataFrame
 unique_datetimes = np.unique(df.datahora)
 
@@ -452,7 +453,7 @@ unique_niveis = np.unique(np.concatenate(df.niveis.values))
 X, Y = np.meshgrid(unique_datetimes, unique_niveis)
 ```
 
-```python
+```{code-cell} ipython3
 # plt.figure(figsize=(10, 6))
 # plt.pcolormesh(X, -Y, u_arr, shading='auto')
 # plt.colorbar(label='U Velocity')  # Add color bar with label
@@ -465,7 +466,7 @@ X, Y = np.meshgrid(unique_datetimes, unique_niveis)
 # plt.show()
 ```
 
-```python
+```{code-cell} ipython3
 # Cria uma figura com três subplots horizontais
 fig, axs = plt.subplots(1, 3, figsize=(16, 3))
 
@@ -517,10 +518,11 @@ plt.show()
 
 ### Distância de Cada Ensemble de Um Ponto de Referência
 
++++
 
 #### Projeção de um ponto de referência a oeste usando regressão linear
 
-```python
+```{code-cell} ipython3
 # Convertendo os dados de longitude e latitude para arrays de float64
 x = np.array(df.longitude).astype(np.float64)
 y = np.array(df.latitude).astype(np.float64)
@@ -544,11 +546,11 @@ yref = intercept + slope * xref  # Calculando a 'latitude' correspondente ao pon
 ponto_projetado = (xref, yref)
 ```
 
-```python
+```{code-cell} ipython3
 
 ```
 
-```python
+```{code-cell} ipython3
 # Calculando a diferença entre os dados de Longitude e Latitude em relação ao ponto de referência
 dx = x - xref
 dy = y - yref
@@ -563,10 +565,9 @@ distancia = (distancia_km - np.min(distancia_km)) * 1000
 
 # Adicionando ao dataframe
 df['distancia'] = distancia
-
 ```
 
-```python
+```{code-cell} ipython3
 # Cria a função polinomial com base nos coeficientes da regressão linear
 reta_regressao = np.poly1d(coeficientes)
 
@@ -608,19 +609,18 @@ show(basemap, ax=ax, cmap='Blues')
 
 # Exiba o mapa
 plt.show()
+```
+
+```{code-cell} ipython3
 
 ```
 
-```python
-
-```
-
-```python
+```{code-cell} ipython3
 # Criar uma grade 2D de coordenadas X e Y usando os valores únicos de datahora e niveis
 X, Y = np.meshgrid(df.distancia, unique_niveis)
 ```
 
-```python
+```{code-cell} ipython3
 # Cria uma figura com três subplots horizontais
 fig, axs = plt.subplots(1, 3, figsize=(16, 3))
 
@@ -672,7 +672,7 @@ plt.show()
 
 #### Suavizando os dados em função da distância
 
-```python
+```{code-cell} ipython3
 # Calcular as médias de profundidade para cada intervalo de distância
 md_prof_arr = calcular_media_por_distancia(df.distancia, df.profundidade, 20)
 
@@ -686,22 +686,22 @@ md_v_arr = calcular_media_por_distancia(df.distancia, v_arr, 20)
 md_avgB_arr = calcular_media_por_distancia(df.distancia, avgB_arr, 20)
 ```
 
-```python
+```{code-cell} ipython3
 print(f'Shape profundidade: {md_prof_arr[0].shape}')
 print(f'Shape Vel. u: {md_u_arr[0].shape}')
 print(f'Shape avgB: {md_avgB_arr[0].shape}')
 ```
 
-```python
+```{code-cell} ipython3
 md_u_arr[0]
 ```
 
-```python
+```{code-cell} ipython3
 # Criar uma grade 2D de coordenadas X e Y usando os valores de distância e níveis
 X, Y = np.meshgrid(md_prof_arr[1], unique_niveis)
 ```
 
-```python
+```{code-cell} ipython3
 # Cria uma figura com três subplots horizontais
 fig, axs = plt.subplots(1, 3, figsize=(16, 3))
 
@@ -748,12 +748,11 @@ for i, ax in enumerate(axs):
 
 # Exibe o gráfico
 plt.show()
-
 ```
 
 #### Rotação horizontal dos componentes da velocidade (u - transvesal & v - longitudinal)
 
-```python
+```{code-cell} ipython3
 plt.plot(md_u_arr[0], md_v_arr[0], 'b.', ms=2)
 plt.axis('equal')
 plt.xlabel('Vel-u')
@@ -765,7 +764,7 @@ plt.show()
 
 #### A figura acima mostra ser desnecessário rotacionar
 
-```python
+```{code-cell} ipython3
 # Dados iniciais
 dados_x = md_v_arr[1]
 dados_y = -unique_niveis
@@ -820,19 +819,18 @@ fig.update_layout(height=600, autosize=True)
 
 # Exibir o gráfico
 fig.show()
-
 ```
 
-```python
+```{code-cell} ipython3
 dados_y.shape
 ```
 
-```python
+```{code-cell} ipython3
 dados_x = md_v_arr[1]
 dados_y = -unique_niveis
 ```
 
-```python
+```{code-cell} ipython3
 # Dados iniciais
 dados_x = md_v_arr[1]
 dados_y = -unique_niveis
@@ -873,9 +871,8 @@ fig.update_layout(height=600, autosize=True)
 
 # Exibir o gráfico
 fig.show()
-
 ```
 
-```python
+```{code-cell} ipython3
 
 ```

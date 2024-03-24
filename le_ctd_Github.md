@@ -1,24 +1,24 @@
 ---
-jupyter:
-  jupytext:
-    formats: ipynb,md
-    text_representation:
-      extension: .md
-      format_name: markdown
-      format_version: '1.3'
-      jupytext_version: 1.16.1
-  kernelspec:
-    display_name: Python 3 (ipykernel)
-    language: python
-    name: python3
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.16.1
+kernelspec:
+  display_name: Python 3 (ipykernel)
+  language: python
+  name: python3
 ---
 
 # Rotina de Processamento dos Dados de CTD
 
++++
 
 ### Importando Bibliotecas Utilizadas
 
-```python
+```{code-cell} ipython3
 # Importa bibliotecas para manipulação de dados tabulares
 import pandas as pd  # Para manipulação de dados tabulares
 import numpy as np  # Para operações numéricas eficientes
@@ -59,7 +59,7 @@ from IPython.display import display, HTML, clear_output  # Para exibir widgets e
 
 ### Defindo o Caminho dos Arquivos 
 
-```python
+```{code-cell} ipython3
 basemap_path = '/home/ppms/Documents/TCC_Organizado/jp_notes_mb/dados/basemap_cNautica.tif'  # Caminho para o arquivo de mapa base
 
 GPXfile = '/home/ppms/Documents/TCC_Organizado/jp_notes_mb/dados/GPS_20210227.gpx'  # Caminho para o arquivo GPX contendo dados de GPS
@@ -69,7 +69,7 @@ CTDfile = '/home/ppms/Documents/TCC_Organizado/jp_notes_mb/dados/202102270755_AS
 
 ### Lendo e Organizando os Dados de GPS do arquivo GPX
 
-```python
+```{code-cell} ipython3
 def processar_arquivo_gpx(GPXfile, tz='America/Sao_Paulo', remover_linhas=0):
     """
     Função para processar um arquivo GPX, incluindo a leitura, extração de dados, filtragem e ajuste do DataFrame.
@@ -121,12 +121,11 @@ GPS_df = processar_arquivo_gpx(GPXfile, remover_linhas=1)
 # Visualização dos primeiros registros do DataFrame
 print("\nDados GPS:")
 display(GPS_df.head())
-
 ```
 
 ### Visualizando os dados de GPS
 
-```python
+```{code-cell} ipython3
 # Função para atualizar o gráfico com base no intervalo selecionado
 def update_map(start_datetime, end_datetime):
     filtered_df = GPS_df[(GPS_df['tempo'] >= start_datetime) & (GPS_df['tempo'] <= end_datetime)]
@@ -149,7 +148,7 @@ interactive_plot = widgets.interactive(update_map,
 interactive_plot
 ```
 
-```python
+```{code-cell} ipython3
 # min_date = GPS_df['tempo'].min()
 # max_date = GPS_df['tempo'].max()
 
@@ -209,13 +208,13 @@ interactive_plot
 #     app.run(debug=True)
 ```
 
-```python
+```{code-cell} ipython3
 del GPXfile, processar_arquivo_gpx
 ```
 
 ### Leitura do arquivo CSV e processamento inicial dos dados de CTD
 
-```python
+```{code-cell} ipython3
 def processar_dados_csv(CTDfile):
     # Definir a string que indica o início dos dados
     string_inicio_dados = '[Item]\n'
@@ -317,21 +316,21 @@ def processar_dados_csv(CTDfile):
 CTD_df = processar_dados_csv(CTDfile)
 ```
 
-```python
+```{code-cell} ipython3
 
 ```
 
-```python
+```{code-cell} ipython3
 del CTDfile, get_localzone, processar_dados_csv, pytz
 ```
 
-```python
+```{code-cell} ipython3
 display(CTD_df.head())
 ```
 
 ### Visualizando os perfis verticais
 
-```python
+```{code-cell} ipython3
 # Criar subplots
 fig = make_subplots(rows=1, cols=3, shared_yaxes=True, subplot_titles=('Salinidade x Pressão', 'Temperatura x Pressão', 'Turbidez x Pressão'))
 
@@ -363,11 +362,12 @@ fig.show()
 
 ### Ajustando Temporalmente os dados de GPS e CTD
 
++++
 
 #### Nesta seção os dados serão processados para que haja equivalência tanto no intervalo de 
 #### abrangência (datahora de ínicio e fim), quanto na resolução temporal
 
-```python
+```{code-cell} ipython3
 # Criar as traces para os dados de GPS e CTD
 trace_ctd = go.Scatter(x=CTD_df['tempo'], y=CTD_df['tempo'], mode='markers', name='CTD')
 trace_gps = go.Scatter(x=GPS_df['tempo'], y=GPS_df['tempo'], mode='markers', name='GPS')
@@ -397,7 +397,7 @@ fig = go.Figure(data=[trace_gps, trace_ctd], layout=layout)
 fig.show()
 ```
 
-```python
+```{code-cell} ipython3
 # Copiar o DataFrame CTD_df para ctd_df
 ctd_df = CTD_df.copy()
 
@@ -427,10 +427,9 @@ n = n_ocorrencias[1:]
 
 # Adicionar 10 (número de itens por minuto) ao fim da lista senão iria faltar
 n.append(10)
-
 ```
 
-```python
+```{code-cell} ipython3
 n_indice = []  # Lista para armazenar os novos índices
 
 # Iterar sobre os índices únicos do DataFrame
@@ -449,10 +448,9 @@ for i, u in enumerate(ctd_df.index.unique()):
         
         # Atualizar o incremento de tempo para a próxima ocorrência com um pequeno incremento
         t_increment += pd.Timedelta(milliseconds=100)
-
 ```
 
-```python
+```{code-cell} ipython3
 # Converter a lista de timestamps em um objeto pandas Datetime
 datetime_indice = pd.to_datetime(n_indice)
 
@@ -462,7 +460,7 @@ ctd_df.index = pd.Index(datetime_indice, name='tempo')
 ctd_df.reset_index(inplace=True)
 ```
 
-```python
+```{code-cell} ipython3
 # Cria uma cópia do DataFrame GPS_df
 gps_df = GPS_df.copy()
 
@@ -489,10 +487,9 @@ gps_df_sliced = gps_df_interp.loc[start_datetime:end_datetime]
 # Resetar o índice
 gps_df_sliced.reset_index(inplace=True)
 ctd_df.reset_index(inplace=True)
-
 ```
 
-```python
+```{code-cell} ipython3
 # Criar as traces para os dados de GPS e CTD
 trace_gps = go.Scatter(x=gps_df_sliced['tempo'], y=gps_df_sliced['tempo'], mode='markers', name='GPS')  # Trace para os dados de GPS
 trace_ctd = go.Scatter(x=ctd_df['tempo'], y=ctd_df['tempo'], mode='markers', name='CTD', opacity=0.5)  # Trace para os dados de CTD
@@ -521,10 +518,9 @@ fig = go.Figure(data=[trace_gps, trace_ctd], layout=layout)
 
 # Exibir o gráfico
 fig.show()
-
 ```
 
-```python
+```{code-cell} ipython3
 # Mesclar os DataFrames com base na coluna de tempo
 dados_df = pd.merge(ctd_df, gps_df_sliced, on='tempo')
 
@@ -533,12 +529,12 @@ print('Dados de CTD e GPS unificados:')
 display(dados_df.head())
 ```
 
-```python
+```{code-cell} ipython3
 del CTD_df, GPS_df, gps_df, ctd_df, c, datetime_indice, end_datetime, primeira_ocorrencia, gps_df_interp, gps_df_resampled, gps_df_sliced, i, j
 del n, n_indice, n_ocorrencias, start_datetime, t_increment, trace_ctd, trace_gps, u
 ```
 
-```python
+```{code-cell} ipython3
 # Criar um gráfico de dispersão sobre um mapa usando o Plotly Express
 fig = px.scatter_mapbox(dados_df,  # DataFrame contendo os dados
                         lat="lat",  # Coluna com os valores de latitude
@@ -554,29 +550,27 @@ fig.update_layout(mapbox_style="open-street-map",  # Estilo do mapa (OpenStreetM
 
 # Exibir o gráfico
 fig.show()
-
 ```
 
 ### Calculando a profundidade a partir da pressão e da latitude média
 
-```python
+```{code-cell} ipython3
 # Inserir uma nova coluna chamada 'profundidade' no índice 2 do DataFrame 'dados_df'
 # A profundidade é calculada usando a função sw.eos80.dpth(), que leva em consideração a pressão e a latitude média
 # A multiplicação por -1 é usada para inverter o sinal e obter a negativa
 # Na prática não é profundidade, pois foi não foi realizada redução pela maré. Sendo assim, o mais correto é metro abaixo da superfície,
 # em inglés, meters below surface (mbs)
 dados_df.insert(2, 'profundidade', (sw.eos80.dpth(dados_df.pressao, dados_df.lat.mean()) * -1))
-
 ```
 
 ### Retirada dos dados do 'topo' (menos de 0.5 metros abaixo da superfície)
 
-```python
+```{code-cell} ipython3
 # Filtrar as linhas com profundidade maior ou igual a meio metro, descartando as restantes
 dados_df_st = dados_df[dados_df['profundidade'] < -0.5]
 ```
 
-```python
+```{code-cell} ipython3
 # Criar as traces para os dados com e sem 'topo'
 trace_ctopo = go.Scatter(x=dados_df['tempo'], y=dados_df['profundidade'], mode='markers', name='Com Topo')
 trace_stopo = go.Scatter(x=dados_df_st['tempo'], y=dados_df_st['profundidade'], mode='markers', name='Sem Topo', opacity=0.5)
@@ -605,13 +599,13 @@ fig = go.Figure(data=[trace_ctopo, trace_stopo], layout=layout)
 fig.show()
 ```
 
-```python
+```{code-cell} ipython3
 del idx
 ```
 
 ### Separar as subidas das descidas
 
-```python
+```{code-cell} ipython3
 def encontrar_pontos_inflexao(dados):
     """
     Encontra os pontos de inflexão nos dados.
@@ -674,10 +668,9 @@ def identificar_descida_subida(dados):
     perfis_descida = dados[dados['profundidade'].diff() < -0.08] # esse valor controla a tolerância
     
     return perfis_descida, perfis_subida
-
 ```
 
-```python
+```{code-cell} ipython3
 # Encontrar pontos de inflexão
 indice_perfis = encontrar_pontos_inflexao(dados_df_st)
 
@@ -690,14 +683,14 @@ perfis_separados = separar_perfis(dados_df_st, inicio_perfis, final_perfis)
 perfis_descida, perfis_subida = identificar_descida_subida(perfis_separados)
 ```
 
-```python
+```{code-cell} ipython3
 del encontrar_pontos_inflexao, final_perfis, inicio_perfis, indice_perfis, dados_df, perfis_separados
 del trace_ctopo, trace_stopo, separar_perfis
 ```
 
 ### Visualizando os dados separados
 
-```python
+```{code-cell} ipython3
 # Plotar os dados de descida
 trace_descida = go.Scatter(x=perfis_descida['tempo'], y=perfis_descida['profundidade'],
                            mode='markers', name='Descida', marker=dict(symbol='circle-dot'))
@@ -723,13 +716,13 @@ fig.update_xaxes(autorange="reversed")
 pio.show(fig)
 ```
 
-```python
+```{code-cell} ipython3
 del trace_subida, trace_descida, identificar_descida_subida
 ```
 
 ### Visualizando os perfis de descida
 
-```python
+```{code-cell} ipython3
 fig = px.scatter_mapbox(perfis_descida, lat="lat", lon="lon", hover_name='tempo', zoom=14, height=300)
 fig.update_layout(mapbox_style="open-street-map",
                  margin={"r":20,"t":30,"l":20,"b":20},
@@ -738,7 +731,7 @@ fig.update_layout()
 fig.show()
 ```
 
-```python
+```{code-cell} ipython3
 # Criar subplots
 fig = make_subplots(rows=1, cols=3, shared_yaxes=True, subplot_titles=('Salinidade x Pressão', 'Temperatura x Pressão', 'Turbidez x Pressão'))
 
@@ -769,7 +762,7 @@ fig.show()
 
 ### Calculando as Distâncias de um Ponto Projetado Linearmente
 
-```python
+```{code-cell} ipython3
 def calcular_distancias(df, retornar_xy=False):
     """
     Calcula as distancias de cada ponto em relação a um ponto de referência na 'longitude'.
@@ -838,12 +831,12 @@ def calcular_distancias(df, retornar_xy=False):
 # df, x_array, y_array = calcular_distancias(df, retornar_xy=True)
 ```
 
-```python
+```{code-cell} ipython3
 # Aplica a função
 descida_df, x_array, y_array = calcular_distancias(perfis_descida, retornar_xy=True)
 ```
 
-```python
+```{code-cell} ipython3
 # Realize a regressão linear para obter os coeficientes
 coeficientes = np.polyfit(x_array, y_array, 1)
 
@@ -882,14 +875,14 @@ gdf_ponto = gpd.GeoDataFrame(geometry=[Point(ponto_projetado)])
 gdf_linha = gpd.GeoDataFrame(geometry=[reta_regressao])
 ```
 
-```python
+```{code-cell} ipython3
 del calcular_distancias, coeficientes, conversao, geometry, intercept, lat_ref, x_ext, y_ext, yref, xref
 del funcao_regressao, ponto_projetado, reta_regressao, perfis_subida, perfis_descida
 ```
 
 ### Visualizando a Reta de Regressão e o Ponto no Mapa
 
-```python
+```{code-cell} ipython3
 basemap = rasterio.open(basemap_path)  # Abrindo o arquivo de mapa base com rasterio
 
 # Plote a nuvem de pontos, a reta de regressão e o ponto projetado
@@ -915,13 +908,13 @@ show(basemap, ax=ax, cmap='Blues')
 plt.show()
 ```
 
-```python
+```{code-cell} ipython3
 del basemap, basemap_path, gdf, gdf_linha, gdf_ponto, slope, x_array, y_array
 ```
 
 ### Identificando Outliers Graficamente
 
-```python
+```{code-cell} ipython3
 ## Perfis Verticais de Salinidade
 # fig, ax = plt.subplots(figsize=(25, 10), dpi=300)
 # scatter = ax.scatter(descida_df['distancia'], descida_df['profundidade'], c=descida_df['salinidade'], cmap='jet')
@@ -935,10 +928,9 @@ del basemap, basemap_path, gdf, gdf_linha, gdf_ponto, slope, x_array, y_array
 # plt.rcParams.update({'font.size': 18})  # Ajuste o tamanho da fonte conforme necessário
 
 # plt.show()
-
 ```
 
-```python
+```{code-cell} ipython3
 # Definir a função de plotagem interativa
 def plot_histogram(columns, bin_size, cutoff_value):
     fig = go.Figure()
@@ -985,16 +977,15 @@ display(box)
 widgets.interact(plot_histogram, columns=column_dropdown, bin_size=bin_slider, cutoff_value=cutoff_slider);
 
 
-
 ```
 
 ### Retirando Outliers
 
-```python
+```{code-cell} ipython3
 descida_filt_df = descida_df.copy()
 ```
 
-```python
+```{code-cell} ipython3
 # Função para filtrar o DataFrame com base no valor de referência e na coluna selecionada
 def filtrar_dataframe(coluna, valor_referencia):
     global descida_filt_df  # Utiliza a variável global descida_filt_df
@@ -1036,10 +1027,9 @@ display(coluna_dropdown)     # Exibe o dropdown para seleção da coluna
 display(valor_referencia_widget)  # Exibe o widget para entrada do valor de referência
 display(botao_filtrar)       # Exibe o botão para acionar a filtragem
 display(out)                 # Exibe a saída para mensagens e resultados da filtragem
-
 ```
 
-```python
+```{code-cell} ipython3
 # Definir a função de plotagem interativa
 def plot_histogram(columns, bin_size, cutoff_value):
     fig = go.Figure()
@@ -1086,14 +1076,14 @@ display(box)
 widgets.interact(plot_histogram, columns=column_dropdown, bin_size=bin_slider, cutoff_value=cutoff_slider);
 ```
 
-```python
+```{code-cell} ipython3
 del bin_slider, box, box_layout, column_dropdown, coluna_dropdown, cutoff_slider, descida_df, filtrar_dataframe
 del on_botao_filtrar_clicked, plot_histogram, texto_informativo, valor_referencia_widget
 ```
 
 ### Gráfico de Dispersão Perfis de Descida
 
-```python
+```{code-cell} ipython3
 # Dados iniciais
 dados_x = descida_filt_df['distancia']
 dados_y = descida_filt_df['profundidade']
@@ -1151,12 +1141,11 @@ fig.update_layout(title='Gráfico de Dispersão Interativo',
 
 # Etibir o gráfico
 fig.show()
-
 ```
 
 ### Interpolando
 
-```python
+```{code-cell} ipython3
 # Definir a grade para interpolação
 di = np.linspace(descida_filt_df['distancia'].min(), descida_filt_df['distancia'].max(), 41)
 pi = np.linspace(descida_filt_df['profundidade'].min(), descida_filt_df['profundidade'].max(), 50)
@@ -1176,7 +1165,7 @@ turb_i = griddata(points, descida_filt_df['turbidez'], (dd, pp), method='linear'
 
 ### Visualizando dados interpolados
 
-```python
+```{code-cell} ipython3
 # Empilhar temp_i e turb_i ao longo do novo eixo (eixo 2)
 customdata = np.stack((temp_i, turb_i), axis=2)
 
@@ -1261,17 +1250,16 @@ fig.update_yaxes(showspikes=True, spikecolor="black", spikethickness=2)
 
 # Etibir o gráfico
 fig.show()
+```
+
+```{code-cell} ipython3
 
 ```
 
-```python
-
-```
-
-```python
+```{code-cell} ipython3
 del buttons, botao_filtrar, dados_cor, dados_x, dados_y, dados_z
 ```
 
-```python
+```{code-cell} ipython3
 
 ```
